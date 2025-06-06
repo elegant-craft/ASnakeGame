@@ -2,13 +2,16 @@ import Foundation
 import SwiftUI
 
 struct SnakeGame {
-    let size = 15
+    var size: Int = 15 // 控制列数，行数视 ContentView 控制是否显示
+
     var snake: [CGPoint] = [CGPoint(x: 7, y: 7)]
     var direction: Direction = .right
     var apple: CGPoint = .zero
     var isGameOver = false
+    var score: Int = 0
 
-    init() {
+    init(size: Int = 15) {
+        self.size = size
         placeApple()
     }
 
@@ -29,7 +32,6 @@ struct SnakeGame {
         case .right: newHead.x += 1
         }
 
-        // Check collisions
         if newHead.x < 0 || newHead.x >= CGFloat(size) ||
             newHead.y < 0 || newHead.y >= CGFloat(size) ||
             snake.contains(newHead) {
@@ -40,10 +42,10 @@ struct SnakeGame {
         snake.insert(newHead, at: 0)
 
         if newHead == apple {
+            score += 1
             placeApple()
         } else {
             snake.removeLast()
         }
     }
 }
-

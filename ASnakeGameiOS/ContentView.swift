@@ -2,51 +2,110 @@ import SwiftUI
 
 public struct ContentView4: View {
     @StateObject private var viewModel = SnakeGameViewModel()
-    private let cellSize: CGFloat = 10
+    
+    private let columnCount = 15 // 横向格子数固定
+    private let showGrid: Bool = true // ✅ 控制是否显示格子线
+    
+    let screenSize: CGSize
 
-    public init() {}
+    public init(size: CGSize) {
+        self.screenSize = size
+    }
 
     public var body: some View {
-        GeometryReader { geometry in
-            let gridSize = min(geometry.size.width, geometry.size.height)
-            ZStack {
-                Color.black
-                VStack(spacing: 1) {
-                    ForEach(0..<viewModel.game.size, id: \.self) { y in
-                        HStack(spacing: 1) {
-                            ForEach(0..<viewModel.game.size, id: \.self) { x in
+        let cellSize = screenSize.width / CGFloat(columnCount)
+        let maxRows = Int(screenSize.height / cellSize)
+        let rowCount = min(viewModel.game.size, maxRows)
+
+        ZStack {
+            Image("background", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                .resizable()
+                .scaledToFill()
+                .frame(width: screenSize.width, height: screenSize.height)
+//            Rectangle()
+//                .fill(.yellow)
+
+            VStack(spacing: 0) {
+                // 游戏区域
+                VStack(spacing: 0) {
+                    ForEach(0..<rowCount, id: \.self) { y in
+                        HStack(spacing: 0) {
+                            ForEach(0..<columnCount, id: \.self) { x in
                                 let point = CGPoint(x: CGFloat(x), y: CGFloat(y))
-                                Rectangle()
-                                    .fill(cellColor(at: point))
-                                    .frame(width: cellSize, height: cellSize)
+                                ZStack {
+                                    if showGrid {
+                                        Rectangle()
+                                            .stroke(Color.black.opacity(0.8), lineWidth: 0.5)
+                                    }
+                                    cellView(at: point)
+                                }
+                                .frame(width: cellSize, height: cellSize)
                             }
                         }
                     }
                 }
-                if viewModel.game.isGameOver {
+            }
+            .frame(width: screenSize.width, height: cellSize * CGFloat(rowCount))
+            .clipped()
+            // Score Overlay
+            VStack {
+                Text("Score: \(viewModel.game.score)")
+                    .foregroundColor(.white)
+                    .font(.headline)
+                    .padding(.top, 10)
+                    .shadow(radius: 2)
+                Spacer()
+            }
+            // Game Over Overlay
+            if viewModel.game.isGameOver {
+                VStack {
                     Text("Game Over")
+                        .font(.title2)
                         .foregroundColor(.white)
-                        .font(.headline)
-                        .background(Color.black.opacity(0.7))
+                        .padding(.top, 20)
+                    Text("Tap to Restart")
+                        .font(.caption)
+                        .foregroundColor(.gray)
                 }
-            }
-            .gesture(swipeGesture)
-            .onAppear {
-                viewModel.start()
-            }
-            .onDisappear {
-                viewModel.stop()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.opacity(0.6))
             }
         }
+        .frame(width: screenSize.width, height: screenSize.height)
+        .clipped()
+        .gesture(tapGesture)
+        .gesture(swipeGesture)
+        .onAppear { viewModel.start() }
+        .onDisappear { viewModel.stop() }
     }
 
-    private func cellColor(at point: CGPoint) -> Color {
-        if viewModel.game.snake.contains(point) {
-            return .green
-        } else if viewModel.game.apple == point {
-            return .red
+    private func cellView(at point: CGPoint) -> some View {
+        if point == viewModel.game.snake.first {
+            return AnyView(
+//                Image("snake_head")
+//                    .resizable()
+//                    .scaledToFit()
+                Rectangle()
+                    .fill(.blue)
+            )
+        } else if viewModel.game.snake.contains(point) {
+            return AnyView(
+//                Image("snake_body")
+//                    .resizable()
+//                    .scaledToFit()
+                Rectangle()
+                    .fill(.green)
+            )
+        } else if point == viewModel.game.apple {
+            return AnyView(
+                Image("star", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                    .resizable()
+                    .scaledToFill()
+//                Rectangle()
+//                    .fill(.red)
+            )
         } else {
-            return .gray
+            return AnyView(Color.clear)
         }
     }
 
@@ -63,5 +122,13 @@ public struct ContentView4: View {
                 }
             }
     }
-}
 
+    private var tapGesture: some Gesture {
+        TapGesture()
+            .onEnded {
+                if viewModel.game.isGameOver {
+                    viewModel.restart()
+                }
+            }
+    }
+}

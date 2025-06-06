@@ -15,6 +15,10 @@ class SnakeGameViewModel: ObservableObject {
         }
     }
 
+    func restart() {
+        start()
+    }
+
     func changeDirection(to new: Direction) {
         game.direction = game.direction.turned(to: new)
     }
