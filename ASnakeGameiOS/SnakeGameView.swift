@@ -1,6 +1,6 @@
 import SwiftUI
 
-public struct ContentView4: View {
+public struct SnakeGameView: View {
     @StateObject private var viewModel = SnakeGameViewModel()
     
     private let columnCount = 15 // 横向格子数固定
@@ -35,7 +35,7 @@ public struct ContentView4: View {
                                 ZStack {
                                     if showGrid {
                                         Rectangle()
-                                            .stroke(Color.black.opacity(0.8), lineWidth: 0.5)
+                                            .stroke(Color.white.opacity(0.8), lineWidth: 0.5)
                                     }
                                     cellView(at: point)
                                 }
@@ -98,7 +98,7 @@ public struct ContentView4: View {
             )
         } else if point == viewModel.game.apple {
             return AnyView(
-                Image("star", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                Image("apple", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
                     .resizable()
                     .scaledToFill()
 //                Rectangle()

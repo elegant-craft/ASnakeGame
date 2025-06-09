@@ -6,7 +6,7 @@ enum Direction {
     func turned(to swipe: Direction) -> Direction {
         switch (self, swipe) {
         case (.up, .down), (.down, .up), (.left, .right), (.right, .left):
-            return self // disallow 180 turn
+            return self
         default:
             return swipe
         }
