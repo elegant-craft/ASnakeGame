@@ -59,9 +59,5 @@ struct SnakeGame {
             
             snakeDirection.removeLast()
         }
-        
-        print("=====snake=====")
-        print("\(snakeDirection)")
-        print("=====snake=====")
     }
 }

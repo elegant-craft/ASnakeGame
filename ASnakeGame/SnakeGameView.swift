@@ -10,69 +10,71 @@ public struct SnakeGameView: View {
 
     public var body: some View {
         let screenWidth = WKInterfaceDevice.current().screenBounds.width
-            let cellSize = screenWidth / CGFloat(columnCount)
+        let cellSize = screenWidth / CGFloat(columnCount)
         let maxRows = Int(WKInterfaceDevice.current().screenBounds.height / cellSize)
-            let rowCount = min(viewModel.game.size, maxRows)
+        let rowCount = min(viewModel.game.size, maxRows)
 
-            ZStack {
-                Image("background", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGame"))
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: screenWidth, height: WKInterfaceDevice.current().screenBounds.height)
+        ZStack {
+            Image("background", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGame"))
+                .resizable()
+                .scaledToFill()
+                .frame(width: screenWidth, height: WKInterfaceDevice.current().screenBounds.height)
+            VStack(spacing: 0) {
                 VStack(spacing: 0) {
-                    VStack(spacing: 0) {
-                        ForEach(0..<rowCount, id: \.self) { y in
-                            HStack(spacing: 0) {
-                                ForEach(0..<columnCount, id: \.self) { x in
-                                    let point = CGPoint(x: CGFloat(x), y: CGFloat(y))
-                                    ZStack {
-                                        if showGrid {
-                                            Rectangle()
-                                                .stroke(Color.clear, lineWidth: 0.5)
-                                        }
-                                        cellView(at: point)
+                    ForEach(0..<rowCount, id: \.self) { y in
+                        HStack(spacing: 0) {
+                            ForEach(0..<columnCount, id: \.self) { x in
+                                let point = CGPoint(x: CGFloat(x), y: CGFloat(y))
+                                ZStack {
+                                    if showGrid {
+                                        Rectangle()
+                                            .stroke(Color.clear, lineWidth: 0.5)
                                     }
-                                    .frame(width: cellSize, height: cellSize)
+                                    cellView(at: point)
                                 }
+                                .frame(width: cellSize, height: cellSize)
                             }
                         }
                     }
                 }
-                .frame(width: screenWidth, height: cellSize * CGFloat(rowCount))
-                .clipped()
-                VStack {
-                    Text("Score: \(viewModel.game.score)")
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .padding(.top, 10)
-                        .shadow(radius: 2)
-                    Spacer()
-                }
-                if viewModel.game.isGameOver {
-                    VStack {
-                        Text("Game Over")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                            .padding(.top, 20)
-
-                        Text("Tap to Restart")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.6))
-                }
             }
-            .frame(width: screenWidth, height: WKInterfaceDevice.current().screenBounds.height)
+            .frame(width: screenWidth, height: cellSize * CGFloat(rowCount))
             .clipped()
-            .ignoresSafeArea()
-            .gesture(tapGesture)
-            .gesture(swipeGesture)
-            .onAppear { viewModel.start() }
-            .onDisappear { viewModel.stop() }
+            VStack {
+                Text("Score: \(viewModel.game.score)")
+                    .foregroundColor(.white)
+                    .font(.headline)
+                    .padding(.top, 10)
+                    .shadow(radius: 2)
+                Spacer()
+            }
+            if viewModel.game.isGameOver {
+                VStack {
+                    Text("Game Over")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .padding(.top, 20)
+
+                    Text("Tap to Restart")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.opacity(0.6))
+            }
+        }
+        .frame(width: screenWidth, height: WKInterfaceDevice.current().screenBounds.height)
+        .clipped()
+        .ignoresSafeArea()
+        .gesture(tapGesture)
+        .gesture(swipeGesture)
+        .onAppear { viewModel.start() }
+        .onDisappear { viewModel.stop() }
     }
 
     private func cellView(at point: CGPoint) -> some View {
+        let screenWidth = WKInterfaceDevice.current().screenBounds.width
+        let cellSize = screenWidth / CGFloat(columnCount)
         if point == viewModel.game.snake.first {
             return AnyView(
                 Image("snake_head", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGame"))
@@ -86,6 +88,7 @@ public struct SnakeGameView: View {
                                 viewModel.game.direction == .up ? 180 : 0
                         )
                     )
+                    .frame(width: cellSize, height: cellSize)
             )
         } else if point == viewModel.game.snake.last && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] {
             return AnyView(
@@ -100,6 +103,7 @@ public struct SnakeGameView: View {
                                 viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .up ? 180 : 0
                         )
                     )
+                    .frame(width: cellSize, height: cellSize)
             )
         } else if viewModel.game.snake.contains(point) && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] {
             return AnyView(
@@ -114,6 +118,7 @@ public struct SnakeGameView: View {
                                 viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .up ? 180 : 0
                         )
                     )
+                    .frame(width: cellSize, height: cellSize)
             )
         } else if viewModel.game.snake.contains(point) {
             if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .left && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .down {
@@ -121,6 +126,7 @@ public struct SnakeGameView: View {
                     Image("snake_body_coner_1", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGame"))
                         .resizable()
                         .scaledToFill()
+                        .frame(width: cellSize, height: cellSize)
                 )
             } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .up && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .left {
                 return AnyView(
@@ -130,6 +136,7 @@ public struct SnakeGameView: View {
                         .rotationEffect(
                             .degrees(90)
                         )
+                        .frame(width: cellSize, height: cellSize)
                 )
             } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .right && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .up {
                 return AnyView(
@@ -139,6 +146,7 @@ public struct SnakeGameView: View {
                         .rotationEffect(
                             .degrees(180)
                         )
+                        .frame(width: cellSize, height: cellSize)
                 )
             } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .down && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .right {
                 return AnyView(
@@ -148,12 +156,14 @@ public struct SnakeGameView: View {
                         .rotationEffect(
                             .degrees(-90)
                         )
+                        .frame(width: cellSize, height: cellSize)
                 )
             } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .down && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .left {
                 return AnyView(
                     Image("snake_body_coner_2", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGame"))
                         .resizable()
                         .scaledToFill()
+                        .frame(width: cellSize, height: cellSize)
                 )
             } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .left && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .up {
                 return AnyView(
@@ -163,6 +173,7 @@ public struct SnakeGameView: View {
                         .rotationEffect(
                             .degrees(90)
                         )
+                        .frame(width: cellSize, height: cellSize)
                 )
             } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .up && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .right {
                 return AnyView(
@@ -172,6 +183,7 @@ public struct SnakeGameView: View {
                         .rotationEffect(
                             .degrees(180)
                         )
+                        .frame(width: cellSize, height: cellSize)
                 )
             } else {
                 return AnyView(
@@ -181,6 +193,7 @@ public struct SnakeGameView: View {
                         .rotationEffect(
                             .degrees(-90)
                         )
+                        .frame(width: cellSize, height: cellSize)
                 )
             }
         } else if point == viewModel.game.apple {
@@ -188,6 +201,7 @@ public struct SnakeGameView: View {
                 Image("apple", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGame"))
                     .resizable()
                     .scaledToFill()
+                    .frame(width: cellSize, height: cellSize)
             )
         } else {
             return AnyView(Color.clear)

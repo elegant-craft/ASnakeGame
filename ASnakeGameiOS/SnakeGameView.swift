@@ -3,8 +3,8 @@ import SwiftUI
 public struct SnakeGameView: View {
     @StateObject private var viewModel = SnakeGameViewModel()
     
-    private let columnCount = 15 // 横向格子数固定
-    private let showGrid: Bool = true // ✅ 控制是否显示格子线
+    private let columnCount = 15
+    private let showGrid: Bool = true
     
     let screenSize: CGSize
 
@@ -13,7 +13,8 @@ public struct SnakeGameView: View {
     }
 
     public var body: some View {
-        let cellSize = screenSize.width / CGFloat(columnCount)
+        let screenWidth = screenSize.width
+        let cellSize = screenWidth / CGFloat(columnCount)
         let maxRows = Int(screenSize.height / cellSize)
         let rowCount = min(viewModel.game.size, maxRows)
 
@@ -21,12 +22,8 @@ public struct SnakeGameView: View {
             Image("background", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
                 .resizable()
                 .scaledToFill()
-                .frame(width: screenSize.width, height: screenSize.height)
-//            Rectangle()
-//                .fill(.yellow)
-
+                .frame(width: screenWidth, height: screenSize.height)
             VStack(spacing: 0) {
-                // 游戏区域
                 VStack(spacing: 0) {
                     ForEach(0..<rowCount, id: \.self) { y in
                         HStack(spacing: 0) {
@@ -35,7 +32,7 @@ public struct SnakeGameView: View {
                                 ZStack {
                                     if showGrid {
                                         Rectangle()
-                                            .stroke(Color.white.opacity(0.8), lineWidth: 0.5)
+                                            .stroke(Color.clear, lineWidth: 0.5)
                                     }
                                     cellView(at: point)
                                 }
@@ -45,9 +42,8 @@ public struct SnakeGameView: View {
                     }
                 }
             }
-            .frame(width: screenSize.width, height: cellSize * CGFloat(rowCount))
+            .frame(width: screenWidth, height: cellSize * CGFloat(rowCount))
             .clipped()
-            // Score Overlay
             VStack {
                 Text("Score: \(viewModel.game.score)")
                     .foregroundColor(.white)
@@ -56,13 +52,13 @@ public struct SnakeGameView: View {
                     .shadow(radius: 2)
                 Spacer()
             }
-            // Game Over Overlay
             if viewModel.game.isGameOver {
                 VStack {
                     Text("Game Over")
                         .font(.title2)
                         .foregroundColor(.white)
                         .padding(.top, 20)
+
                     Text("Tap to Restart")
                         .font(.caption)
                         .foregroundColor(.gray)
@@ -71,8 +67,9 @@ public struct SnakeGameView: View {
                 .background(Color.black.opacity(0.6))
             }
         }
-        .frame(width: screenSize.width, height: screenSize.height)
+        .frame(width: screenWidth, height: screenSize.height)
         .clipped()
+        .ignoresSafeArea()
         .gesture(tapGesture)
         .gesture(swipeGesture)
         .onAppear { viewModel.start() }
@@ -80,29 +77,135 @@ public struct SnakeGameView: View {
     }
 
     private func cellView(at point: CGPoint) -> some View {
+        let screenWidth = screenSize.width
+        let cellSize = screenWidth / CGFloat(columnCount)
         if point == viewModel.game.snake.first {
             return AnyView(
-//                Image("snake_head")
-//                    .resizable()
-//                    .scaledToFit()
-                Rectangle()
-                    .fill(.blue)
+                Image("snake_head", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                    .resizable()
+                    .scaledToFill()
+                    .rotationEffect(
+                        .degrees(
+                            viewModel.game.direction == .right ? -90 :
+                                viewModel.game.direction == .down ? 0 :
+                                viewModel.game.direction == .left ? 90 :
+                                viewModel.game.direction == .up ? 180 : 0
+                        )
+                    )
+                    .frame(width: cellSize, height: cellSize)
+            )
+        } else if point == viewModel.game.snake.last && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] {
+            return AnyView(
+                Image("snake_tail", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                    .resizable()
+                    .scaledToFill()
+                    .rotationEffect(
+                        .degrees(
+                            viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .right ? -90 :
+                                viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .down ? 0 :
+                                viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .left ? 90 :
+                                viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .up ? 180 : 0
+                        )
+                    )
+                    .frame(width: cellSize, height: cellSize)
+            )
+        } else if viewModel.game.snake.contains(point) && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] {
+            return AnyView(
+                Image("snake_body", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                    .resizable()
+                    .scaledToFill()
+                    .rotationEffect(
+                        .degrees(
+                            viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .right ? -90 :
+                                viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .down ? 0 :
+                                viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .left ? 90 :
+                                viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .up ? 180 : 0
+                        )
+                    )
+                    .frame(width: cellSize, height: cellSize)
             )
         } else if viewModel.game.snake.contains(point) {
-            return AnyView(
-//                Image("snake_body")
-//                    .resizable()
-//                    .scaledToFit()
-                Rectangle()
-                    .fill(.green)
-            )
+            if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .left && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .down {
+                return AnyView(
+                    Image("snake_body_coner_1", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: cellSize, height: cellSize)
+                )
+            } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .up && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .left {
+                return AnyView(
+                    Image("snake_body_coner_1", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                        .resizable()
+                        .scaledToFill()
+                        .rotationEffect(
+                            .degrees(90)
+                        )
+                        .frame(width: cellSize, height: cellSize)
+                )
+            } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .right && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .up {
+                return AnyView(
+                    Image("snake_body_coner_1", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                        .resizable()
+                        .scaledToFill()
+                        .rotationEffect(
+                            .degrees(180)
+                        )
+                        .frame(width: cellSize, height: cellSize)
+                )
+            } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .down && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .right {
+                return AnyView(
+                    Image("snake_body_coner_1", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                        .resizable()
+                        .scaledToFill()
+                        .rotationEffect(
+                            .degrees(-90)
+                        )
+                        .frame(width: cellSize, height: cellSize)
+                )
+            } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .down && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .left {
+                return AnyView(
+                    Image("snake_body_coner_2", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: cellSize, height: cellSize)
+                )
+            } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .left && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .up {
+                return AnyView(
+                    Image("snake_body_coner_2", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                        .resizable()
+                        .scaledToFill()
+                        .rotationEffect(
+                            .degrees(90)
+                        )
+                        .frame(width: cellSize, height: cellSize)
+                )
+            } else if viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)! - 1] == .up && viewModel.game.snakeDirection[viewModel.game.snake.firstIndex(of: point)!] == .right {
+                return AnyView(
+                    Image("snake_body_coner_2", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                        .resizable()
+                        .scaledToFill()
+                        .rotationEffect(
+                            .degrees(180)
+                        )
+                        .frame(width: cellSize, height: cellSize)
+                )
+            } else {
+                return AnyView(
+                    Image("snake_body_coner_2", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
+                        .resizable()
+                        .scaledToFill()
+                        .rotationEffect(
+                            .degrees(-90)
+                        )
+                        .frame(width: cellSize, height: cellSize)
+                )
+            }
         } else if point == viewModel.game.apple {
             return AnyView(
                 Image("apple", bundle: Bundle(identifier: "com.mengdongfuture.ASnakeGameiOS"))
                     .resizable()
                     .scaledToFill()
-//                Rectangle()
-//                    .fill(.red)
+                    .frame(width: cellSize, height: cellSize)
             )
         } else {
             return AnyView(Color.clear)
